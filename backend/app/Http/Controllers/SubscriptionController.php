@@ -14,19 +14,20 @@ class SubscriptionController extends Controller
 {
     public function __construct()
     {
-        // Applique le middleware d'authentification API à toutes les méthodes
         $this->middleware('auth:api');
     }
 
-    // Calcule la date du prochain paiement en fonction du cycle de facturation
-    private function calculateNextPaymentDate(string $billing_cycle): string
+    // Calcule la date du prochain paiement en fonction du cycle
+    private function calculateNextPaymentDate(string $billing_cycle, ?string $fromDate = null): string
     {
+        $date = $fromDate ? now()->parse($fromDate) : now();
+
         return $billing_cycle === 'monthly'
-            ? now()->addMonth()->toDateString()
-            : now()->addYear()->toDateString();
+            ? $date->addMonth()->toDateString()
+            : $date->addYear()->toDateString();
     }
 
-    // Liste tous les abonnements de l'utilisateur connecté avec les informations du provider et logo
+    // Liste abonnements utilisateur
     public function index()
     {
         $subscriptions = Auth::user()
@@ -42,7 +43,7 @@ class SubscriptionController extends Controller
         return response()->json($subscriptions);
     }
 
-    // Crée un nouvel abonnement
+    // Crée un abonnement
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -63,7 +64,7 @@ class SubscriptionController extends Controller
 
         $subscription = Subscription::create($validated);
 
-        // Envoi d'email de notification via Mailhog
+        // Envoi d'email de confirmation
         Mail::to($subscription->user->email)
             ->send(new NewSubscriptionNotification($subscription));
 
@@ -73,7 +74,7 @@ class SubscriptionController extends Controller
         ), 201);
     }
 
-    // Affiche un abonnement spécifique
+    // Affiche un abonnement
     public function show($id)
     {
         $subscription = Subscription::where('user_id', Auth::id())
@@ -101,6 +102,7 @@ class SubscriptionController extends Controller
             'tags' => 'nullable|array',
         ]);
 
+        // Si le cycle est modifié → recalcul automatique de la prochaine date
         if (isset($validated['billing_cycle'])) {
             $validated['next_payment_date'] = $this->calculateNextPaymentDate($validated['billing_cycle']);
         }
@@ -122,7 +124,7 @@ class SubscriptionController extends Controller
         return response()->json(['message' => 'Abonnement supprimé avec succès']);
     }
 
-    // Crée un PaymentIntent Stripe pour un paiement (API sécurisée)
+    // Crée un PaymentIntent Stripe simple
     public function createPaymentIntent(Request $request)
     {
         $request->validate([
@@ -133,7 +135,7 @@ class SubscriptionController extends Controller
 
         try {
             $intent = PaymentIntent::create([
-                'amount' => intval($request->amount * 100), // Montant en centimes
+                'amount' => intval($request->amount * 100), // en centimes
                 'currency' => 'eur',
                 'metadata' => [
                     'user_id' => Auth::id(),
@@ -147,6 +149,44 @@ class SubscriptionController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Échec de la création du paiement : ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // 🔹 Renouvelle un abonnement (paiement + mise à jour date)
+    public function renew(Request $request, $id)
+    {
+        $subscription = Subscription::where('user_id', Auth::id())->findOrFail($id);
+
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        try {
+            // 1. Créer un PaymentIntent
+            $intent = PaymentIntent::create([
+                'amount' => intval($subscription->amount * 100), // montant en centimes
+                'currency' => 'eur',
+                'metadata' => [
+                    'user_id' => Auth::id(),
+                    'subscription_id' => $subscription->id,
+                    'purpose' => 'subscription_renewal'
+                ],
+            ]);
+
+            // 2. Mettre à jour la prochaine date de paiement
+            $subscription->next_payment_date = $this->calculateNextPaymentDate(
+                $subscription->billing_cycle,
+                $subscription->next_payment_date
+            );
+            $subscription->save();
+
+            return response()->json([
+                'message' => 'Paiement Stripe créé pour le renouvellement',
+                'clientSecret' => $intent->client_secret,
+                'subscription' => $subscription
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Échec du renouvellement : ' . $e->getMessage()
             ], 500);
         }
     }

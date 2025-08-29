@@ -89,5 +89,12 @@ export class SubscriptionService {
     headers: this.getAuthHeaders(),
   });
 }
+renewSubscription(id: number): Observable<Subscription> {
+  return this.http.post<Subscription>(
+    `${this.apiUrl}/subscriptions/${id}/renew`,
+    {},
+    { headers: this.getAuthHeaders() }
+  );
+}
 
 }

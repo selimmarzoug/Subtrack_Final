@@ -5,7 +5,6 @@ import {
   ViewChild,
   ElementRef,
   AfterViewChecked,
-  AfterViewInit
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -17,7 +16,7 @@ import {
   CalendarView,
 } from 'angular-calendar';
 import { addMonths, subMonths } from 'date-fns';
-import { Subject } from 'rxjs';
+import { Subject, firstValueFrom } from 'rxjs';
 
 // Stripe
 import { loadStripe, Stripe, StripeCardElement } from '@stripe/stripe-js';
@@ -54,10 +53,13 @@ export class SubscriptionForm implements OnInit, AfterViewChecked {
   card!: StripeCardElement;
   clientSecret: string | null = null;
 
-  // IMPORTANT: Card element peut être undefined avant affichage du modal
   @ViewChild('cardElement', { static: false }) cardElement?: ElementRef;
 
   private cardMounted = false;
+
+  // ✅ Gestion des checkboxes
+  allSelected = false;
+  selectedSubscriptions: number[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -81,9 +83,10 @@ export class SubscriptionForm implements OnInit, AfterViewChecked {
       this.openModal();
     }
 
-    // Charge la clé publique Stripe
+    // Charger la clé publique Stripe
     this.stripe = await loadStripe('pk_test_51RrbRNGaZoKBj88LRcAB6cA3xrd6KQqLpRtG07b9gAY1whljuilbKetnCgMpZy1CmuFVr2ZkSA727mGpGGwGBkbt008b8HYUnW');
 
+    // Vérifie les paiements à venir toutes les heures
     setInterval(() => {
       this.checkUpcomingPayments();
     }, 1000 * 60 * 60);
@@ -156,7 +159,6 @@ export class SubscriptionForm implements OnInit, AfterViewChecked {
       }));
   }
 
-  // Cette méthode sera appelée à chaque détection de changement de vue
   ngAfterViewChecked() {
     if (this.showModal && this.clientSecret && this.cardElement && !this.cardMounted) {
       this.mountCardElement();
@@ -166,7 +168,6 @@ export class SubscriptionForm implements OnInit, AfterViewChecked {
   async mountCardElement(): Promise<void> {
     if (!this.stripe || !this.clientSecret || !this.cardElement) return;
 
-    // Si carte déjà montée, on démonte avant
     if (this.cardMounted) {
       this.card.unmount();
       this.cardMounted = false;
@@ -174,8 +175,6 @@ export class SubscriptionForm implements OnInit, AfterViewChecked {
 
     const elements = this.stripe.elements();
     this.card = elements.create('card');
-
-    // Monte la carte sur le DOM
     this.card.mount(this.cardElement.nativeElement);
     this.cardMounted = true;
   }
@@ -189,17 +188,12 @@ export class SubscriptionForm implements OnInit, AfterViewChecked {
       : [];
 
     try {
-      // Création du PaymentIntent
-      const paymentIntent = await this.subscriptionService
-        .createPaymentIntent(formValue.amount * 100, 'usd')
-        .toPromise();
+      const paymentIntent = await firstValueFrom(
+        this.subscriptionService.createPaymentIntent(formValue.amount * 100, 'usd')
+      );
 
       this.clientSecret = paymentIntent.clientSecret;
 
-      // On monte la carte Stripe ici
-      // Le ngAfterViewChecked s'en chargera automatiquement, pas besoin d'appeler manuellement mountCardElement()
-
-      // Confirmer le paiement
       const result = await this.stripe!.confirmCardPayment(this.clientSecret!, {
         payment_method: {
           card: this.card,
@@ -215,7 +209,7 @@ export class SubscriptionForm implements OnInit, AfterViewChecked {
         if (this.isEditMode && this.subscriptionId) {
           this.subscriptionService.updateSubscription(this.subscriptionId, formValue).subscribe({
             next: () => {
-              this.success = 'Abonnement mis à jour avec succès !';
+              this.success = 'Abonnement mis à jour avec succès ✅';
               this.resetForm();
               this.loadSubscriptions();
               this.closeModal();
@@ -225,7 +219,7 @@ export class SubscriptionForm implements OnInit, AfterViewChecked {
         } else {
           this.subscriptionService.createSubscription(formValue).subscribe({
             next: () => {
-              this.success = 'Abonnement créé avec succès !';
+              this.success = 'Abonnement créé avec succès ✅';
               this.resetForm();
               this.loadSubscriptions();
               this.closeModal();
@@ -241,7 +235,6 @@ export class SubscriptionForm implements OnInit, AfterViewChecked {
 
   openModal() {
     this.showModal = true;
-    // Pas besoin d'appeler mountCardElement ici, car ngAfterViewChecked gère le montage quand le DOM est prêt
   }
 
   closeModal() {
@@ -267,7 +260,7 @@ export class SubscriptionForm implements OnInit, AfterViewChecked {
     if (confirm('Voulez-vous vraiment supprimer cet abonnement ?')) {
       this.subscriptionService.deleteSubscription(id).subscribe({
         next: () => {
-          this.success = 'Abonnement supprimé.';
+          this.success = 'Abonnement supprimé ✅';
           this.loadSubscriptions();
         },
         error: () => this.error = 'Erreur lors de la suppression.'
@@ -387,5 +380,182 @@ export class SubscriptionForm implements OnInit, AfterViewChecked {
     if (target) {
       target.style.display = 'none';
     }
+  }
+
+  isPaymentDue(nextPaymentDate: string | null): boolean {
+    if (!nextPaymentDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const paymentDate = new Date(nextPaymentDate);
+    paymentDate.setHours(0, 0, 0, 0);
+    return paymentDate <= today;
+  }
+
+  async renewSubscription(sub: Subscription) {
+    if (!sub || !sub.id) {
+      this.error = "Données d'abonnement invalides ❌";
+      window.alert("Impossible de renouveler : abonnement non valide !");
+      return;
+    }
+
+    const confirmRenew = window.confirm(`Voulez-vous vraiment renouveler l'abonnement : ${sub.name} ?`);
+    if (!confirmRenew) return;
+
+    this.subscriptionService.renewSubscription(sub.id).subscribe({
+      next: () => {
+        this.success = '✅ Abonnement renouvelé avec succès !';
+        window.alert(this.success);
+        this.loadSubscriptions();
+      },
+      error: (err) => {
+        console.error(err);
+        this.error = '⚠️ Erreur lors du renouvellement. Veuillez réessayer.';
+        window.alert(this.error);
+      }
+    });
+  }
+
+  // ============================
+  // 🔔 Méthodes pour les Notifications
+  // ============================
+  getNotificationClass(notification: any): string {
+    const title = notification.title?.toLowerCase() || '';
+    const body = notification.body?.toLowerCase() || '';
+
+    if (title.includes('retard') || title.includes('échéance') || body.includes('retard')) {
+      return 'notification-danger';
+    }
+    if (title.includes('rappel') || body.includes('rappel')) {
+      return 'notification-warning';
+    }
+    if (title.includes('succès') || title.includes('payé') || body.includes('succès')) {
+      return 'notification-success';
+    }
+    return 'notification-info';
+  }
+
+  getNotificationIcon(notification: any): string {
+    const title = notification.title?.toLowerCase() || '';
+    const body = notification.body?.toLowerCase() || '';
+
+    if (title.includes('retard') || title.includes('échéance') || body.includes('retard')) {
+      return 'fas fa-exclamation-triangle';
+    }
+    if (title.includes('rappel') || body.includes('rappel')) {
+      return 'fas fa-clock';
+    }
+    if (title.includes('succès') || title.includes('payé') || body.includes('succès')) {
+      return 'fas fa-check-circle';
+    }
+    if (title.includes('paiement') || body.includes('paiement')) {
+      return 'fas fa-credit-card';
+    }
+    return 'fas fa-info-circle';
+  }
+
+  removeNotification(index: number): void {
+    this.notifications.splice(index, 1);
+  }
+
+  // ============================
+  // 📅 Méthodes pour l'Agenda
+  // ============================
+  getUpcomingPayments(): Subscription[] {
+    const today = new Date();
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    return this.subscriptions.filter(sub => {
+      const paymentDate = new Date(sub.next_payment_date);
+      return paymentDate >= today && paymentDate <= nextWeek;
+    });
+  }
+
+  getTotalMonthlyAmount(): number {
+    return this.subscriptions.reduce((total, sub) => {
+      if (sub.billing_cycle === 'monthly') return total + sub.amount;
+      return total + (sub.amount / 12);
+    }, 0);
+  }
+
+  getTimelineItemClass(subscription: Subscription): string {
+    if (this.isPaymentDue(subscription.next_payment_date)) return 'urgent';
+
+    const today = new Date();
+    const paymentDate = new Date(subscription.next_payment_date);
+    const daysUntilPayment = Math.ceil((paymentDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (daysUntilPayment <= 3) return 'warning';
+    if (daysUntilPayment <= 7) return 'success';
+    return 'normal';
+  }
+
+  getTimelineDotClass(subscription: Subscription): string {
+    return this.getTimelineItemClass(subscription);
+  }
+
+  getTimelineIcon(subscription: Subscription): string {
+    const itemClass = this.getTimelineItemClass(subscription);
+    switch (itemClass) {
+      case 'urgent': return 'fas fa-exclamation-triangle';
+      case 'warning': return 'fas fa-clock';
+      case 'success': return 'fas fa-check-circle';
+      default: return 'fas fa-calendar-day';
+    }
+  }
+
+  getDateBadgeClass(subscription: Subscription): string {
+    return this.getTimelineItemClass(subscription);
+  }
+
+  getDateStatusClass(subscription: Subscription): string {
+    return this.getTimelineItemClass(subscription);
+  }
+
+  getDateStatusText(subscription: Subscription): string {
+    const itemClass = this.getTimelineItemClass(subscription);
+    switch (itemClass) {
+      case 'urgent': return 'En retard';
+      case 'warning': return 'Urgent';
+      case 'success': return 'Bientôt';
+      default: return 'À venir';
+    }
+  }
+
+  // ============================
+  // ✅ Gestion des checkboxes
+  // ============================
+toggleSelectAll() {
+  this.allSelected = !this.allSelected;
+
+  if (this.allSelected) {
+    this.selectedSubscriptions = this.subscriptions.map(s => s.id!);
+
+    // 🔹 Renouvellement automatique pour tous
+    this.subscriptions.forEach(sub => this.renewSubscription(sub));
+  } else {
+    this.selectedSubscriptions = [];
+  }
+}
+
+
+ toggleSelection(sub: Subscription) {
+  const index = this.selectedSubscriptions.indexOf(sub.id!);
+
+  if (index > -1) {
+    this.selectedSubscriptions.splice(index, 1);
+  } else {
+    this.selectedSubscriptions.push(sub.id!);
+
+    // 🚀 Lancer le renouvellement automatique si checkbox cochée
+    this.renewSubscription(sub);
+  }
+
+  // Mise à jour de la checkbox "tout sélectionner"
+  this.allSelected = this.selectedSubscriptions.length === this.subscriptions.length;
+}
+
+
+  getSelectedSubscriptions(): Subscription[] {
+    return this.subscriptions.filter(sub => this.selectedSubscriptions.includes(sub.id));
   }
 }

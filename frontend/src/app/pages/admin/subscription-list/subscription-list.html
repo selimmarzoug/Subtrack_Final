@@ -1,43 +1,154 @@
+<!-- 📋 Liste Abonnements Ultra-Moderne -->
 <div class="subscription-list">
-  <h2>Liste des Abonnements (Admin)</h2>
+  <h2>
+    <i class="fas fa-credit-card"></i>
+    Gestion des Abonnements
+  </h2>
 
-  <input
-    type="text"
-    class="search-bar"
-    placeholder="Rechercher un abonnement..."
-    [(ngModel)]="searchTerm"
-    (input)="applyFilter()"
-  />
+  <div class="search-container">
+    <input
+      type="text"
+      class="search-bar"
+      placeholder="🔍 Rechercher par nom, fournisseur, montant..."
+      [(ngModel)]="searchTerm"
+      (input)="applyFilter()"
+    />
+  </div>
 
-  <div *ngIf="loading" class="loading">Chargement...</div>
+  <div *ngIf="loading" class="loading">
+    <div class="loading-text">Chargement des abonnements...</div>
+  </div>
+
   <div *ngIf="error" class="error">{{ error }}</div>
 
   <ng-container *ngIf="!loading && filteredSubscriptions.length; else noSubs">
-    <div class="cards-container">
-      <div *ngFor="let sub of pagedSubscriptions" class="subscription-card">
-        <div class="card-header">
-          <h3>{{ sub.name }}</h3>
-          <span class="provider">{{ sub.provider?.nom || 'Non renseigné' }}</span>
+    <!-- 📊 Statistiques rapides -->
+    <div class="stats-summary">
+      <div class="stat-item">
+        <div class="stat-icon">
+          <i class="fas fa-list"></i>
         </div>
-        <div class="card-body">
-          <p><strong>ID:</strong> {{ sub.id }}</p>
-          <p><strong>Montant:</strong> {{ sub.amount }} €</p>
-          <p><strong>Cycle:</strong> {{ sub.billing_cycle }}</p>
-          <p><strong>Tags:</strong> {{ sub.tags?.join(', ') || 'Aucun' }}</p>
-          <p><strong>Date Création:</strong> {{ sub.created_at | date:'shortDate' }}</p>
-          <p><strong>Prochaine échéance:</strong> {{ sub.next_payment_date | date:'shortDate' }}</p>
+        <div class="stat-content">
+          <span class="stat-number">{{ filteredSubscriptions.length }}</span>
+          <span class="stat-label">Abonnements</span>
+        </div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-icon">
+          <i class="fas fa-euro-sign"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-number">{{ getTotalAmount() | number:'1.2-2' }}</span>
+          <span class="stat-label">Total/Mois</span>
+        </div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-icon">
+          <i class="fas fa-building"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-number">{{ getUniqueProviders() }}</span>
+          <span class="stat-label">Fournisseurs</span>
         </div>
       </div>
     </div>
 
+    <!-- 🎴 Cartes d'abonnements -->
+    <div class="cards-container">
+      <div *ngFor="let sub of pagedSubscriptions; let i = index"
+           class="subscription-card"
+           [style.animation-delay]="(i * 0.1) + 's'">
+
+        <div class="card-header">
+          <h3>
+            <i class="fas fa-credit-card"></i>
+            {{ sub.name }}
+          </h3>
+          <span class="provider">{{ sub.provider?.nom || 'Non renseigné' }}</span>
+        </div>
+
+        <div class="card-body">
+          <p>
+            <strong>
+              <i class="fas fa-hashtag"></i>
+              Identifiant
+            </strong>
+            <span>#{{ sub.id }}</span>
+          </p>
+
+          <p>
+            <strong>
+              <i class="fas fa-euro-sign"></i>
+              Montant
+            </strong>
+            <span class="amount">{{ sub.amount }} DT</span>
+          </p>
+
+          <p>
+            <strong>
+              <i class="fas fa-sync-alt"></i>
+              Cycle
+            </strong>
+            <span class="cycle" [ngClass]="getCycleClass(sub.billing_cycle)">
+              {{ getCycleText(sub.billing_cycle) }}
+            </span>
+          </p>
+
+          <p>
+            <strong>
+              <i class="fas fa-tags"></i>
+              Tags
+            </strong>
+            <span class="tags">{{ sub.tags?.join(', ') || 'Aucun tag' }}</span>
+          </p>
+
+          <p>
+            <strong>
+              <i class="fas fa-calendar-plus"></i>
+              Création
+            </strong>
+            <span>{{ sub.created_at | date:'dd/MM/yyyy' }}</span>
+          </p>
+
+          <p>
+            <strong>
+              <i class="fas fa-calendar-check"></i>
+              Prochaine échéance
+            </strong>
+            <span class="next-payment" [ngClass]="getPaymentClass(sub.next_payment_date)">
+              {{ sub.next_payment_date | date:'dd/MM/yyyy' }}
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📄 Pagination Ultra-Moderne -->
     <div class="pagination" *ngIf="filteredSubscriptions.length > itemsPerPage">
-      <button (click)="prevPage()" [disabled]="currentPage === 1">Précédent</button>
-      <span>Page {{ currentPage }} / {{ totalPages }}</span>
-      <button (click)="nextPage()" [disabled]="currentPage === totalPages">Suivant</button>
+      <button (click)="prevPage()" [disabled]="currentPage === 1">
+        <i class="fas fa-chevron-left"></i>
+        Précédent
+      </button>
+
+      <span>
+        <i class="fas fa-file-alt"></i>
+        Page {{ currentPage }} sur {{ totalPages }}
+      </span>
+
+      <button (click)="nextPage()" [disabled]="currentPage === totalPages">
+        Suivant
+        <i class="fas fa-chevron-right"></i>
+      </button>
     </div>
   </ng-container>
 
+  <!-- 📭 État Vide Ultra-Moderne -->
   <ng-template #noSubs>
-    <div class="no-subscriptions">Aucun abonnement trouvé.</div>
+    <div class="no-subscriptions">
+      <h3>Aucun abonnement trouvé</h3>
+      <p>Il n'y a actuellement aucun abonnement correspondant à vos critères de recherche.</p>
+    </div>
   </ng-template>
 </div>

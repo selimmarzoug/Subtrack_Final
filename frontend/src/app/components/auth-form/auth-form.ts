@@ -14,10 +14,18 @@ import { AuthService } from '../../services/auth';
 export class AuthForm implements AfterViewInit {
   @ViewChild('formContainer', { static: true }) formContainer!: ElementRef;
 
+  // Propriétés du formulaire
   name = '';
   email = '';
   password = '';
   confirmPassword = '';
+
+  // États de l'interface ultra-moderne
+  showPassword = false;
+  showConfirmPassword = false;
+  isLoading = false;
+  errorMessage = '';
+  successMessage = '';
 
   constructor(
     private renderer: Renderer2,
@@ -26,44 +34,47 @@ export class AuthForm implements AfterViewInit {
   ) {}
 
   ngAfterViewInit(): void {
-    // Eye icon toggle
-    const eyeIcons = this.formContainer.nativeElement.querySelectorAll('.eye-icon');
-    eyeIcons.forEach((eyeIcon: HTMLElement) => {
-      this.renderer.listen(eyeIcon, 'click', () => {
-        const pwFields = eyeIcon.closest('.input-field')?.parentElement?.querySelectorAll('.password');
-        pwFields?.forEach((input: HTMLInputElement) => {
-          const isPassword = input.type === 'password';
-          input.type = isPassword ? 'text' : 'password';
-          eyeIcon.classList.toggle('bx-hide', !isPassword);
-          eyeIcon.classList.toggle('bx-show', isPassword);
-        });
-      });
-    });
+    // Initialisation moderne des événements
+    this.initializeModernEvents();
+  }
 
-    // Switch login/signup
-    const links = this.formContainer.nativeElement.querySelectorAll('.link');
-    links.forEach((link: HTMLElement) => {
-      this.renderer.listen(link, 'click', (e: Event) => {
-        e.preventDefault();
-        this.formContainer.nativeElement.classList.toggle('show-signup');
-      });
-    });
-
-    // Forgot password
+  /**
+   * Initialise les événements modernes
+   */
+  private initializeModernEvents(): void {
+    // Gestion moderne du mot de passe oublié
     const forgotLink = this.formContainer.nativeElement.querySelector('.forgot-pass');
     if (forgotLink) {
       this.renderer.listen(forgotLink, 'click', (e: Event) => {
         e.preventDefault();
-        if (!this.email) {
-          alert('Veuillez saisir votre email avant de demander un reset');
-          return;
-        }
-        this.authService.forgotPassword(this.email).subscribe({
-          next: () => alert('Un email de réinitialisation a été envoyé. Vérifiez Mailhog.'),
-          error: () => alert('Erreur lors de la demande de réinitialisation'),
-        });
+        this.handleForgotPassword();
       });
     }
+  }
+
+  /**
+   * Gère la demande de mot de passe oublié
+   */
+  private handleForgotPassword(): void {
+    this.clearMessages();
+
+    if (!this.email) {
+      this.errorMessage = 'Veuillez saisir votre email avant de demander une réinitialisation';
+      return;
+    }
+
+    this.isLoading = true;
+    this.authService.forgotPassword(this.email).subscribe({
+      next: () => {
+        this.successMessage = 'Un email de réinitialisation a été envoyé. Vérifiez votre boîte mail.';
+      },
+      error: () => {
+        this.errorMessage = 'Erreur lors de la demande de réinitialisation';
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   // Signup
@@ -82,14 +93,78 @@ export class AuthForm implements AfterViewInit {
   onLogin(): void {
     this.authService.login({ email: this.email, password: this.password }).subscribe({
       next: (res) => {
-        alert('Connexion réussie !');
         this.authService.setToken(res.access_token);
         this.authService.setUser(res.user);
         const role = res.user?.role;
         if (role === 'admin') this.router.navigate(['/dashboard-admin']);
         else this.router.navigate(['/default']);
       },
-      error: () => alert('Échec de la connexion !'),
+      error: () => {
+        this.errorMessage = 'Email ou mot de passe incorrect';
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
     });
+  }
+
+  // ============================
+  // 🎨 Méthodes Ultra-Modernes
+  // ============================
+
+  /**
+   * Bascule l'affichage du mot de passe principal
+   */
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  /**
+   * Bascule l'affichage du mot de passe de confirmation
+   */
+  toggleConfirmPassword(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  /**
+   * Bascule entre les formulaires de connexion et d'inscription avec animation fluide
+   */
+  toggleForm(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+    }
+
+    // Effacer les messages et champs avant la transition
+    this.clearMessages();
+
+    // Ajouter une petite animation avant le basculement
+    const formsContainer = this.formContainer.nativeElement;
+    formsContainer.style.transform = 'scale(0.98)';
+
+    setTimeout(() => {
+      formsContainer.classList.toggle('show-signup');
+      formsContainer.style.transform = 'scale(1)';
+      this.clearForm();
+    }, 150);
+  }
+
+  /**
+   * Efface tous les messages d'erreur et de succès
+   */
+  private clearMessages(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  /**
+   * Efface tous les champs du formulaire
+   */
+  private clearForm(): void {
+    this.name = '';
+    this.email = '';
+    this.password = '';
+    this.confirmPassword = '';
+    this.showPassword = false;
+    this.showConfirmPassword = false;
   }
 }

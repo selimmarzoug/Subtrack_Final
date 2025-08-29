@@ -1,56 +1,63 @@
-<div class="row g-4" *ngIf="!loading; else loadingTpl">
+<!-- 🎨 Dashboard Ultra-Moderne -->
+<div class="dashboard-container">
+  <div class="dashboard-header mb-4">
+    <h1 class="dashboard-title">
+      <i class="fas fa-chart-line"></i>
+      Tableau de Bord Administrateur
+    </h1>
+    <p class="dashboard-subtitle">Vue d'ensemble de votre plateforme d'abonnements</p>
+  </div>
 
-  <!-- Cartes Dashboard (Users, Providers, Subscriptions) -->
+  <div class="row g-4" *ngIf="!loading; else loadingTpl">
+
+  <!-- 💎 Cartes Statistiques Ultra-Modernes -->
   <div class="col-lg-4 col-md-6">
-    <div class="card earning-card users-card text-white overflow-hidden">
+    <div class="earning-card users-card text-white overflow-hidden">
       <span class="round small"></span>
       <span class="round big"></span>
-      <div class="card-body">
-        <div class="avatar avatar-lg mb-3">
-          <i class="fas fa-users f-48"></i>
-        </div>
-        <h1 class="number-display">{{ userCount }}</h1>
-        <p class="card-label">Utilisateurs enregistrés</p>
+      <div class="avatar">
+        <i class="fas fa-users"></i>
       </div>
+      <h1 class="number-display">{{ userCount }}</h1>
+      <p class="card-label">Utilisateurs Enregistrés</p>
     </div>
   </div>
 
   <div class="col-lg-4 col-md-6">
-    <div class="card earning-card providers-card text-white overflow-hidden">
+    <div class="earning-card providers-card text-white overflow-hidden">
       <span class="round small"></span>
       <span class="round big"></span>
-      <div class="card-body">
-        <div class="avatar avatar-lg mb-3">
-          <i class="fas fa-cogs f-48"></i>
-        </div>
-        <h1 class="number-display">{{ providerCount }}</h1>
-        <p class="card-label">Providers</p>
+      <div class="avatar">
+        <i class="fas fa-building"></i>
       </div>
+      <h1 class="number-display">{{ providerCount }}</h1>
+      <p class="card-label">Fournisseurs Actifs</p>
     </div>
   </div>
 
   <div class="col-lg-4 col-md-12">
-    <div class="card earning-card subscriptions-card text-white overflow-hidden">
+    <div class="earning-card subscriptions-card text-white overflow-hidden">
       <span class="round small"></span>
       <span class="round big"></span>
-      <div class="card-body">
-        <div class="avatar avatar-lg mb-3">
-          <i class="fas fa-file-invoice-dollar f-48"></i>
-        </div>
-        <h1 class="number-display">{{ subscriptionCount }}</h1>
-        <p class="card-label">Abonnements actifs</p>
+      <div class="avatar">
+        <i class="fas fa-credit-card"></i>
       </div>
+      <h1 class="number-display">{{ subscriptionCount }}</h1>
+      <p class="card-label">Abonnements Actifs</p>
     </div>
   </div>
 
-  <!-- Pie & Bar Charts -->
+  <!-- 📊 Graphiques Ultra-Modernes -->
   <div class="col-lg-6 col-md-12">
-    <div class="card chart-card">
-      <div class="card-body">
-        <h5 class="chart-title">Répartition des utilisateurs</h5>
-        <apx-chart [series]="pieChartOptions.series" 
+    <div class="chart-card">
+      <h5 class="chart-title">
+        <i class="fas fa-chart-pie"></i>
+        Répartition des Utilisateurs
+      </h5>
+      <div class="chart-container">
+        <apx-chart [series]="pieChartOptions.series"
                    [chart]="pieChartOptions.chart"
-                   [labels]="pieChartOptions.labels" 
+                   [labels]="pieChartOptions.labels"
                    [title]="pieChartOptions.title"
                    [responsive]="pieChartOptions.responsive">
         </apx-chart>
@@ -59,12 +66,15 @@
   </div>
 
   <div class="col-lg-6 col-md-12">
-    <div class="card chart-card">
-      <div class="card-body">
-        <h5 class="chart-title">Abonnements par mois</h5>
-        <apx-chart [series]="barChartOptions.series" 
+    <div class="chart-card">
+      <h5 class="chart-title">
+        <i class="fas fa-chart-bar"></i>
+        Abonnements par Mois
+      </h5>
+      <div class="chart-container">
+        <apx-chart [series]="barChartOptions.series"
                    [chart]="barChartOptions.chart"
-                   [xaxis]="barChartOptions.xaxis" 
+                   [xaxis]="barChartOptions.xaxis"
                    [title]="barChartOptions.title"
                    [responsive]="barChartOptions.responsive">
         </apx-chart>
@@ -72,32 +82,52 @@
     </div>
   </div>
 
-  <!-- Alert messages -->
+  <!-- 🚨 Messages d'Alerte Ultra-Modernes -->
   <div *ngIf="alertMessage" class="col-12">
     <div class="alert" [ngClass]="{'alert-success': alertType==='success','alert-danger': alertType==='error'}" role="alert">
+      <i class="fas" [ngClass]="{'fa-check-circle': alertType==='success', 'fa-exclamation-triangle': alertType==='error'}"></i>
       {{ alertMessage }}
-      <button type="button" class="btn-close float-end" aria-label="Close" (click)="alertMessage = ''"></button>
+      <button type="button" class="btn-close" aria-label="Close" (click)="alertMessage = ''">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
   </div>
 
-  <!-- Tableau Utilisateurs -->
+  <!-- 📋 Tableau Utilisateurs Ultra-Moderne -->
   <div class="col-12">
-    <div class="card table-card mt-4">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h4>Liste des utilisateurs</h4>
-          <button class="btn btn-primary" (click)="openAddUser()">Ajouter Utilisateur</button>
-        </div>
-        <div class="table-responsive">
-          <table class="table table-hover table-striped align-middle">
-            <thead class="thead-dark">
-              <tr>
-                <th>Nom</th>
-                <th>Email</th>
-                <th>Rôle</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+    <div class="table-card">
+      <div class="table-header">
+        <h4 class="table-title">
+          <i class="fas fa-users"></i>
+          Gestion des Utilisateurs
+        </h4>
+        <button class="btn btn-add-user" (click)="openAddUser()">
+          <i class="fas fa-plus"></i>
+          <span>Ajouter Utilisateur</span>
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>
+                <i class="fas fa-user"></i>
+                Nom
+              </th>
+              <th>
+                <i class="fas fa-envelope"></i>
+                Email
+              </th>
+              <th>
+                <i class="fas fa-shield-alt"></i>
+                Rôle
+              </th>
+              <th>
+                <i class="fas fa-cogs"></i>
+                Actions
+              </th>
+            </tr>
+          </thead>
             <tbody>
               <tr *ngFor="let user of users">
                 <td>{{ user.name }}</td>
@@ -123,7 +153,8 @@
     <button class="btn btn-danger" (click)="openReclamations()">Voir les réclamations</button>
   </div>
 
-</div>
+  </div> <!-- Fin row -->
+
 
 <!-- Modal Ajout / Modification Utilisateur -->
 <div class="modal" tabindex="-1" [class.show]="showModal" [style.display]="showModal ? 'block' : 'none'">
@@ -160,51 +191,160 @@
   </div>
 </div>
 
-<!-- Modal Réclamations -->
-<div class="modal" tabindex="-1" [class.show]="showReclamationsModal" [style.display]="showReclamationsModal ? 'block' : 'none'">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content modal-custom">
-      <div class="modal-header">
-        <h5 class="modal-title">Réclamations</h5>
-        <button type="button" class="btn-close" (click)="closeReclamationsModal()"></button>
-      </div>
-      <div class="modal-body">
-        <div *ngIf="reclamations.length > 0; else noReclamations">
-          <table class="table table-hover table-striped align-middle">
-            <thead>
-              <tr>
-                <th>Utilisateur</th>
-                <th>Objet / Nom</th>
-                <th>Message</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let rec of reclamations">
-                <td>{{ rec.email || 'Inconnu' }}</td>
-                <td>{{ rec.name || 'Sans objet' }}</td>
-                <td>{{ rec.message }}</td>
-                <td>
-                  <span class="badge bg-warning" *ngIf="rec.status==='pending'">En attente</span>
-                  <span class="badge bg-success" *ngIf="rec.status==='resolved'">Résolu</span>
-                  <span class="badge bg-danger" *ngIf="rec.status==='rejected'">Rejeté</span>
-                </td>
-                <td>{{ rec.created_at | date:'short' }}</td>
-                <td>
-                  <button class="btn btn-sm btn-danger" (click)="deleteReclamation(rec.id!)">Supprimer</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+<!-- 🎭 Modal Réclamations Ultra-Moderne -->
+<div class="modal modal-reclamations" tabindex="-1" [class.show]="showReclamationsModal" [style.display]="showReclamationsModal ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content modal-reclamations-content">
+
+      <!-- Header Ultra-Moderne -->
+      <div class="modal-header modal-reclamations-header">
+        <div class="modal-title-container">
+          <div class="modal-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="modal-title-text">
+            <h4 class="modal-title">Gestion des Réclamations</h4>
+            <p class="modal-subtitle">Centre de traitement des demandes clients</p>
+          </div>
         </div>
+        <button type="button" class="btn-close-modern" (click)="closeReclamationsModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body Ultra-Moderne -->
+      <div class="modal-body modal-reclamations-body">
+
+        <!-- Statistiques des réclamations -->
+        <div class="reclamations-stats" *ngIf="reclamations.length > 0">
+          <div class="stat-item">
+            <div class="stat-icon pending">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-content">
+              <span class="stat-number">{{ getReclamationsByStatus('pending').length }}</span>
+              <span class="stat-label">En Attente</span>
+            </div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-icon resolved">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-content">
+              <span class="stat-number">{{ getReclamationsByStatus('resolved').length }}</span>
+              <span class="stat-label">Résolues</span>
+            </div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-icon rejected">
+              <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="stat-content">
+              <span class="stat-number">{{ getReclamationsByStatus('rejected').length }}</span>
+              <span class="stat-label">Rejetées</span>
+            </div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-icon total">
+              <i class="fas fa-list"></i>
+            </div>
+            <div class="stat-content">
+              <span class="stat-number">{{ reclamations.length }}</span>
+              <span class="stat-label">Total</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Liste des réclamations -->
+        <div *ngIf="reclamations.length > 0; else noReclamations" class="reclamations-container">
+          <div class="reclamations-grid">
+            <div *ngFor="let rec of reclamations; let i = index"
+                 class="reclamation-card"
+                 [ngClass]="getReclamationCardClass(rec.status)">
+
+              <!-- Header de la carte -->
+              <div class="reclamation-header">
+                <div class="reclamation-user">
+                  <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <div class="user-info">
+                    <h6 class="user-name">{{ rec.email || 'Utilisateur Anonyme' }}</h6>
+                    <p class="user-subject">{{ rec.name || 'Sans objet' }}</p>
+                  </div>
+                </div>
+
+                <div class="reclamation-status">
+                  <span class="status-badge" [ngClass]="getStatusBadgeClass(rec.status)">
+                    <i [class]="getStatusIcon(rec.status)"></i>
+                    {{ getStatusText(rec.status) }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Contenu de la réclamation -->
+              <div class="reclamation-content">
+                <p class="reclamation-message">{{ rec.message }}</p>
+              </div>
+
+              <!-- Footer de la carte -->
+              <div class="reclamation-footer">
+                <div class="reclamation-date">
+                  <i class="fas fa-calendar-alt"></i>
+                  <span>{{ rec.created_at | date:'dd/MM/yyyy à HH:mm' }}</span>
+                </div>
+
+                <div class="reclamation-actions">
+                  <button class="btn-action btn-resolve"
+                          *ngIf="rec.status === 'pending'"
+                          (click)="updateReclamationStatus(rec.id!, 'resolved')"
+                          title="Marquer comme résolu">
+                    <i class="fas fa-check"></i>
+                  </button>
+
+                  <button class="btn-action btn-reject"
+                          *ngIf="rec.status === 'pending'"
+                          (click)="updateReclamationStatus(rec.id!, 'rejected')"
+                          title="Rejeter la réclamation">
+                    <i class="fas fa-times"></i>
+                  </button>
+
+                  <button class="btn-action btn-delete"
+                          (click)="deleteReclamation(rec.id!)"
+                          title="Supprimer définitivement">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- État vide -->
         <ng-template #noReclamations>
-          <p class="text-center text-muted">Aucune réclamation trouvée.</p>
+          <div class="empty-reclamations">
+            <div class="empty-icon">
+              <i class="fas fa-inbox"></i>
+            </div>
+            <h4>Aucune réclamation</h4>
+            <p>Parfait ! Aucune réclamation n'a été soumise pour le moment.</p>
+          </div>
         </ng-template>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeReclamationsModal()">Fermer</button>
+
+      <!-- Footer Ultra-Moderne -->
+      <div class="modal-footer modal-reclamations-footer">
+        <div class="footer-info">
+          <i class="fas fa-info-circle"></i>
+          <span>{{ reclamations.length }} réclamation(s) au total</span>
+        </div>
+        <button type="button" class="btn btn-close-modal" (click)="closeReclamationsModal()">
+          <i class="fas fa-times"></i>
+          <span>Fermer</span>
+        </button>
       </div>
     </div>
   </div>

@@ -81,4 +81,64 @@ export class AdminSubscriptionList {
       this.currentPage++;
     }
   }
+
+  // ============================
+  // 🎨 Méthodes pour Design Ultra-Moderne
+  // ============================
+
+  /**
+   * Calcule le montant total mensuel de tous les abonnements
+   */
+  getTotalAmount(): number {
+    return this.filteredSubscriptions.reduce((total, sub) => {
+      if (sub.billing_cycle === 'monthly') {
+        return total + sub.amount;
+      } else {
+        return total + (sub.amount / 12); // Convertir annuel en mensuel
+      }
+    }, 0);
+  }
+
+  /**
+   * Obtient le nombre de fournisseurs uniques
+   */
+  getUniqueProviders(): number {
+    const uniqueProviders = new Set(
+      this.filteredSubscriptions
+        .map(sub => sub.provider?.nom)
+        .filter(nom => nom)
+    );
+    return uniqueProviders.size;
+  }
+
+  /**
+   * Détermine la classe CSS pour le cycle de facturation
+   */
+  getCycleClass(cycle: string): string {
+    return cycle === 'monthly' ? 'monthly' : 'yearly';
+  }
+
+  /**
+   * Obtient le texte formaté pour le cycle
+   */
+  getCycleText(cycle: string): string {
+    return cycle === 'monthly' ? 'Mensuel' : 'Annuel';
+  }
+
+  /**
+   * Détermine la classe CSS pour la date de paiement
+   */
+  getPaymentClass(nextPaymentDate: string): string {
+    const today = new Date();
+    const paymentDate = new Date(nextPaymentDate);
+    const diffTime = paymentDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return 'overdue'; // En retard
+    } else if (diffDays <= 7) {
+      return 'due-soon'; // Bientôt dû
+    }
+    return ''; // Normal
+  }
 }

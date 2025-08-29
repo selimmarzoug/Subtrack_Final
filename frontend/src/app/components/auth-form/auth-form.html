@@ -1,105 +1,182 @@
+<!-- 🎭 Container Ultra-Moderne avec Background Élégant -->
+<!-- Images décoratives -->
+<div class="login-image"></div>
+<div class="signup-image"></div>
+
 <div #formContainer class="container forms">
 
-  <!-- Login Form -->
+  <!-- 🔐 Formulaire de Connexion Ultra-Moderne -->
   <div class="form login">
     <div class="form-content">
-      <header>Login</header>
+      <header>
+        <i class="fas fa-sign-in-alt"></i>
+        Connexion
+      </header>
+
       <form (ngSubmit)="onLogin()">
         <div class="field input-field">
+          <i class="fas fa-envelope"></i>
           <input
             type="email"
             name="loginEmail"
             [(ngModel)]="email"
-            placeholder="Email"
+            placeholder="Votre adresse email"
             class="input"
-            required />
+            required
+            autocomplete="email" />
         </div>
 
         <div class="field input-field">
+          <i class="fas fa-lock"></i>
           <input
-            type="password"
+            [type]="showPassword ? 'text' : 'password'"
             name="loginPassword"
             [(ngModel)]="password"
-            placeholder="Password"
+            placeholder="Votre mot de passe"
             class="password"
-            required />
-          <i class="bx bx-hide eye-icon"></i>
+            required
+            autocomplete="current-password" />
+          <i class="fas eye-icon"
+             [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"
+             (click)="togglePassword()"
+             title="Afficher/Masquer le mot de passe"></i>
         </div>
 
-        <div class="form-link">
-          <a href="#" class="forgot-pass">Forgot password?</a>
+        <!-- Messages d'erreur/succès -->
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <div *ngIf="successMessage" class="success-message">
+          {{ successMessage }}
+        </div>
+
+        <div class="form-link forgot-link">
+          <a href="#" class="forgot-pass">
+            <i class="fas fa-key"></i>
+            Mot de passe oublié ?
+          </a>
         </div>
 
         <div class="field button-field">
-          <button type="submit">Login</button>
+          <button type="submit" [disabled]="isLoading">
+            <span *ngIf="!isLoading">
+              <i class="fas fa-sign-in-alt"></i>
+              Se connecter
+            </span>
+            <span *ngIf="isLoading">
+              <i class="fas fa-spinner fa-spin"></i>
+              Connexion en cours...
+            </span>
+          </button>
         </div>
       </form>
 
       <div class="form-link">
-        <span>Don't have an account?
-          <a href="#" class="link signup-link">Signup</a>
-        </span>
+        <span>Nouveau sur notre plateforme ?</span>
+        <a href="#" class="link signup-link" (click)="toggleForm($event)">
+          <i class="fas fa-user-plus"></i>
+          Créer un compte
+        </a>
       </div>
     </div>
     <div class="line"></div>
   </div>
 
-  <!-- Signup Form -->
+  <!-- 📝 Formulaire d'Inscription Ultra-Moderne -->
   <div class="form signup">
     <div class="form-content">
-      <header>Signup</header>
+      <header>
+        <i class="fas fa-user-plus"></i>
+        Inscription
+      </header>
+
       <form (ngSubmit)="onRegister()">
         <div class="field input-field">
+          <i class="fas fa-user"></i>
           <input
             type="text"
             name="signupName"
             [(ngModel)]="name"
-            placeholder="Name"
+            placeholder="Votre nom complet"
             class="input"
-            required />
+            required
+            autocomplete="name" />
         </div>
 
         <div class="field input-field">
+          <i class="fas fa-envelope"></i>
           <input
             type="email"
             name="signupEmail"
             [(ngModel)]="email"
-            placeholder="Email"
+            placeholder="Votre adresse email"
             class="input"
-            required />
+            required
+            autocomplete="email" />
         </div>
 
         <div class="field input-field">
+          <i class="fas fa-lock"></i>
           <input
-            type="password"
+            [type]="showPassword ? 'text' : 'password'"
             name="signupPassword"
             [(ngModel)]="password"
-            placeholder="Create password"
+            placeholder="Créer un mot de passe"
             class="password"
-            required />
-          <i class="bx bx-hide eye-icon"></i>
+            required
+            autocomplete="new-password" />
+          <i class="fas eye-icon"
+             [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"
+             (click)="togglePassword()"
+             title="Afficher/Masquer le mot de passe"></i>
         </div>
 
         <div class="field input-field">
+          <i class="fas fa-lock"></i>
           <input
-            type="password"
+            [type]="showConfirmPassword ? 'text' : 'password'"
             name="signupConfirm"
             [(ngModel)]="confirmPassword"
-            placeholder="Confirm password"
+            placeholder="Confirmer le mot de passe"
             class="password"
-            required />
-          <i class="bx bx-hide eye-icon"></i>
+            required
+            autocomplete="new-password" />
+          <i class="fas eye-icon"
+             [ngClass]="showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"
+             (click)="toggleConfirmPassword()"
+             title="Afficher/Masquer le mot de passe"></i>
+        </div>
+
+        <!-- Messages d'erreur/succès -->
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <div *ngIf="successMessage" class="success-message">
+          {{ successMessage }}
         </div>
 
         <div class="field button-field">
-          <button type="submit">Signup</button>
+          <button type="submit" [disabled]="isLoading">
+            <span *ngIf="!isLoading">
+              <i class="fas fa-user-plus"></i>
+              Créer mon compte
+            </span>
+            <span *ngIf="isLoading">
+              <i class="fas fa-spinner fa-spin"></i>
+              Création en cours...
+            </span>
+          </button>
         </div>
       </form>
 
       <div class="form-link">
-        <span>Already have an account?
-          <a href="#" class="link login-link">Login</a>
-        </span>
+        <span>Déjà membre ?</span>
+        <a href="#" class="link login-link" (click)="toggleForm($event)">
+          <i class="fas fa-sign-in-alt"></i>
+          Se connecter
+        </a>
       </div>
     </div>
     <div class="line"></div>

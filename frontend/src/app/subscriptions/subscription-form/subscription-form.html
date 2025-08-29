@@ -17,81 +17,56 @@
     aria-modal="true"
     [attr.aria-hidden]="!showModal"
   >
-    <div
-      class="modal-dialog modal-dialog-centered"
-      role="document"
-      style="max-width: 600px;"
-    >
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 600px;">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">
             {{ isEditMode ? 'Modifier un abonnement' : 'Ajouter un abonnement' }}
           </h5>
-          <button
-            type="button"
-            class="btn-close"
-            aria-label="Close"
-            (click)="closeModal()"
-          ></button>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
         </div>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="p-3" novalidate>
           <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
           <div *ngIf="success" class="alert alert-success">{{ success }}</div>
 
+          <!-- Nom -->
           <div class="mb-3">
             <label class="form-label">Nom</label>
             <input formControlName="name" class="form-control" />
-            <div
-              *ngIf="form.controls['name'].invalid && form.controls['name'].touched"
-              class="text-danger"
-            >
+            <div *ngIf="form.controls['name'].invalid && form.controls['name'].touched" class="text-danger">
               Le nom est obligatoire.
             </div>
           </div>
 
+          <!-- Fournisseur -->
           <div class="mb-3">
             <label class="form-label">Fournisseur</label>
-            <select
-              formControlName="provider_id"
-              class="form-select"
-              (change)="onProviderChange()"
-            >
+            <select formControlName="provider_id" class="form-select" (change)="onProviderChange()">
               <option [ngValue]="null">-- Choisir un fournisseur --</option>
-              <option *ngFor="let p of providers" [ngValue]="p.id">
-                {{ p.nom }}
-              </option>
+              <option *ngFor="let p of providers" [ngValue]="p.id">{{ p.nom }}</option>
             </select>
-            <div
-              *ngIf="form.controls['provider_id'].invalid && form.controls['provider_id'].touched"
-              class="text-danger"
-            >
+            <div *ngIf="form.controls['provider_id'].invalid && form.controls['provider_id'].touched" class="text-danger">
               Le fournisseur est obligatoire.
             </div>
           </div>
 
-          <!-- Aperçu du logo dynamique -->
+          <!-- Aperçu logo -->
           <div class="mb-3" *ngIf="selectedProviderLogo">
             <label class="form-label">Logo du fournisseur :</label><br />
-            <img
-              [src]="selectedProviderLogo"
-              alt="Logo fournisseur"
-              class="logo-preview"
-              (error)="hideImage($event)"
-            />
+            <img [src]="selectedProviderLogo" alt="Logo fournisseur" class="logo-preview" (error)="hideImage($event)" />
           </div>
 
+          <!-- Montant -->
           <div class="mb-3">
             <label class="form-label">Montant</label>
             <input type="number" formControlName="amount" class="form-control" min="0" />
-            <div
-              *ngIf="form.controls['amount'].invalid && form.controls['amount'].touched"
-              class="text-danger"
-            >
-              Le montant est obligatoire et doit être supérieur ou égal à 0.
+            <div *ngIf="form.controls['amount'].invalid && form.controls['amount'].touched" class="text-danger">
+              Le montant est obligatoire et doit être ≥ 0.
             </div>
           </div>
 
+          <!-- Cycle -->
           <div class="mb-3">
             <label class="form-label">Cycle de facturation</label>
             <select formControlName="billing_cycle" class="form-select">
@@ -100,55 +75,37 @@
             </select>
           </div>
 
+          <!-- Notes -->
           <div class="mb-3">
             <label class="form-label">Notes</label>
             <textarea formControlName="notes" class="form-control"></textarea>
           </div>
 
+          <!-- Tags -->
           <div class="mb-3">
             <label class="form-label">Tags (séparés par des virgules)</label>
             <input formControlName="tags" class="form-control" />
           </div>
 
+          <!-- Date prochain paiement -->
           <div class="mb-3">
             <label class="form-label">Date du prochain paiement</label>
-            <input
-              type="date"
-              formControlName="next_payment_date"
-              class="form-control"
-            />
-            <div
-              *ngIf="form.controls['next_payment_date'].invalid && form.controls['next_payment_date'].touched"
-              class="text-danger"
-            >
+            <input type="date" formControlName="next_payment_date" class="form-control" />
+            <div *ngIf="form.controls['next_payment_date'].invalid && form.controls['next_payment_date'].touched" class="text-danger">
               La date du prochain paiement est obligatoire.
             </div>
           </div>
 
-          <!-- Carte bancaire Stripe -->
+          <!-- Stripe -->
           <div class="mb-3" *ngIf="clientSecret">
             <label class="form-label">Carte bancaire</label>
-            <div
-              #cardElement
-              class="form-control p-2"
-              style="height: 42px;"
-            ></div>
+            <div #cardElement class="form-control p-2" style="height: 42px;"></div>
             <div id="card-errors" class="text-danger mt-2"></div>
           </div>
 
           <div class="d-flex justify-content-end">
-            <button
-              type="button"
-              class="btn btn-secondary me-2"
-              (click)="closeModal()"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              [disabled]="form.invalid"
-            >
+            <button type="button" class="btn btn-secondary me-2" (click)="closeModal()">Annuler</button>
+            <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
               {{ isEditMode ? 'Modifier' : 'Ajouter' }}
             </button>
           </div>
@@ -157,125 +114,249 @@
     </div>
   </div>
 
-  <!-- AGENDA -->
-  <div class="d-flex justify-content-end mb-3">
-    <button class="btn btn-outline-info" (click)="toggleAgenda()">
-      {{ showAgenda ? "Masquer l'agenda" : "Afficher l'agenda" }}
-    </button>
-  </div>
+  <!-- AGENDA MODERNE -->
+  <div class="agenda-section">
+    <div class="agenda-header">
+      <h3 class="agenda-title">
+        <i class="fas fa-calendar-alt"></i>
+        Agenda des Abonnements
+      </h3>
+      <button class="btn btn-toggle-agenda" (click)="toggleAgenda()">
+        <i [class]="showAgenda ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+        <span>{{ showAgenda ? "Masquer" : "Afficher" }}</span>
+      </button>
+    </div>
 
-  <div
-    *ngIf="showAgenda"
-    class="agenda p-3 border rounded bg-white shadow-sm"
-    style="max-width: 600px; margin: auto;"
-  >
-    <h4 class="mb-3 text-center">📅 Agenda des abonnements</h4>
-    <ul class="list-group">
-      <li
-        *ngFor="let sub of subscriptions"
-        class="list-group-item d-flex justify-content-between align-items-center"
-      >
-        <div class="d-flex align-items-center gap-2">
-          <img
-            *ngIf="sub.logo_path"
-            [src]="sub.logo_path"
-            alt="Logo"
-            class="logo-table"
-            (error)="hideImage($event)"
-          />
-          <div>
-            <strong>{{ sub.name }}</strong><br />
-            <small class="text-muted">{{ getProviderName(sub.provider_id) }}</small>
+    <div *ngIf="showAgenda" class="agenda-container">
+      <div class="agenda-stats">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-list"></i>
+          </div>
+          <div class="stat-content">
+            <span class="stat-number">{{ subscriptions.length }}</span>
+            <span class="stat-label">Abonnements</span>
           </div>
         </div>
-        <span class="badge bg-primary rounded-pill" title="Date du prochain paiement">
-          {{ sub.next_payment_date | date: "dd/MM/yyyy" }}
-        </span>
-      </li>
-    </ul>
+
+        <div class="stat-card">
+          <div class="stat-icon urgent">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="stat-content">
+            <span class="stat-number">{{ getUpcomingPayments().length }}</span>
+            <span class="stat-label">Paiements proches</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon success">
+            <i class="fas fa-euro-sign"></i>
+          </div>
+          <div class="stat-content">
+            <span class="stat-number">{{ getTotalMonthlyAmount() | number:'1.2-2' }}</span>
+            <span class="stat-label">DT/mois</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="agenda-timeline">
+        <div *ngFor="let sub of subscriptions; let i = index"
+             class="timeline-item"
+             [ngClass]="getTimelineItemClass(sub)">
+
+          <div class="timeline-marker">
+            <div class="timeline-dot" [ngClass]="getTimelineDotClass(sub)">
+              <i [class]="getTimelineIcon(sub)"></i>
+            </div>
+            <div class="timeline-line" *ngIf="i < subscriptions.length - 1"></div>
+          </div>
+
+          <div class="timeline-content">
+            <div class="timeline-card">
+              <div class="timeline-header">
+                <div class="timeline-logo">
+                  <img *ngIf="sub.logo_path"
+                       [src]="sub.logo_path"
+                       alt="Logo"
+                       class="agenda-logo"
+                       (error)="hideImage($event)" />
+                  <div *ngIf="!sub.logo_path" class="agenda-logo-placeholder">
+                    <i class="fas fa-building"></i>
+                  </div>
+                </div>
+
+                <div class="timeline-info">
+                  <h5 class="timeline-title">{{ sub.name }}</h5>
+                  <p class="timeline-provider">{{ getProviderName(sub.provider_id) }}</p>
+                  <div class="timeline-meta">
+                    <span class="timeline-amount">{{ sub.amount }} DT</span>
+                    <span class="timeline-cycle" [ngClass]="sub.billing_cycle === 'monthly' ? 'cycle-monthly' : 'cycle-yearly'">
+                      {{ sub.billing_cycle === 'monthly' ? 'Mensuel' : 'Annuel' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="timeline-date">
+                  <div class="date-badge" [ngClass]="getDateBadgeClass(sub)">
+                    <div class="date-day">{{ sub.next_payment_date | date: 'dd' }}</div>
+                    <div class="date-month">{{ sub.next_payment_date | date: 'MMM' | uppercase }}</div>
+                  </div>
+                  <div class="date-status" [ngClass]="getDateStatusClass(sub)">
+                    {{ getDateStatusText(sub) }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="timeline-actions" *ngIf="isPaymentDue(sub.next_payment_date)">
+                <button class="btn btn-pay-now" (click)="renewSubscription(sub)">
+                  <i class="fas fa-credit-card"></i>
+                  <span>Payer maintenant</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- LISTE -->
+  <h3 class="text-center mb-4">Liste des abonnements</h3>
+
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Logo</th>
+          <th>Nom</th>
+          <th>Fournisseur</th>
+          <th>Montant</th>
+          <th>Cycle</th>
+          <th>Date de création</th>
+ <th>
+  <label>
+    <input type="checkbox" [checked]="allSelected" (change)="toggleSelectAll()" />
+    Auto Payment
+  </label>
+</th>
+
+          <th>Prochain paiement</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let sub of subscriptions">
+          <td style="text-align: center;">
+            <img *ngIf="sub.logo_path" [src]="sub.logo_path" alt="Logo" class="logo-table" (error)="hideImage($event)" />
+          </td>
+          <td class="table-cell-primary">{{ sub.name }}</td>
+          <td class="table-cell-secondary">{{ getProviderName(sub.provider_id) }}</td>
+          <td class="table-cell-primary">{{ sub.amount }} DT</td>
+          <td>
+            <span class="badge-status" [ngClass]="sub.billing_cycle === 'monthly' ? 'badge-active' : 'badge-pending'">
+              {{ sub.billing_cycle === 'monthly' ? 'Mensuel' : 'Annuel' }}
+            </span>
+          </td>
+          <td class="table-cell-secondary">{{ sub.created_at | date: 'dd/MM/yyyy' }}</td>
+
+<!-- Checkbox individuelle dans le *ngFor -->
+<td>
+  <input type="checkbox"
+         [checked]="selectedSubscriptions.includes(sub.id)"
+         (change)="toggleSelection(sub)" />
+</td>
+
+          <!-- ✅ Cellule rouge si paiement dû -->
+          <td [ngClass]="{ 'bg-danger': isPaymentDue(sub.next_payment_date), 'bg-success': !isPaymentDue(sub.next_payment_date) }">
+            <ng-container *ngIf="isPaymentDue(sub.next_payment_date); else normalDate">
+              🔴 Paiement en retard
+            </ng-container>
+            <ng-template #normalDate>
+              {{ sub.next_payment_date | date: 'dd/MM/yyyy' }}
+            </ng-template>
+          </td>
+
+          <!-- Actions -->
+          <td class="actions">
+            <button class="btn btn-action btn-edit" (click)="editSubscription(sub)" title="Modifier l'abonnement">
+              <i class="fas fa-edit"></i>
+              <span>Modifier</span>
+            </button>
+
+            <button class="btn btn-action btn-delete" (click)="deleteSubscription(sub.id)" title="Supprimer l'abonnement">
+              <i class="fas fa-trash"></i>
+              <span>Supprimer</span>
+            </button>
+
+            <!-- ✅ Bouton spécial si paiement dû -->
+            <button *ngIf="isPaymentDue(sub.next_payment_date)"
+                    class="btn btn-action btn-pay"
+                    (click)="renewSubscription(sub)"
+                    title="Effectuer le paiement">
+              <i class="fas fa-credit-card"></i>
+              <span>Payer</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <hr />
 
-  <!-- LISTE DES ABONNEMENTS -->
-  <h3 class="text-center mb-3">Liste des abonnements</h3>
-  <table
-    class="table table-hover table-bordered text-center align-middle"
-  >
-    <thead class="table-light">
-      <tr>
-        <th>Logo</th>
-        <th>Nom</th>
-        <th>Fournisseur</th>
-        <th>Montant</th>
-        <th>Cycle</th>
-        <th>Date de création</th>
-        <th>Prochain paiement</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let sub of subscriptions">
-        <td>
-          <img
-            *ngIf="sub.logo_path"
-            [src]="sub.logo_path"
-            alt="Logo"
-            class="logo-table"
-            (error)="hideImage($event)"
-          />
-        </td>
-        <td>{{ sub.name }}</td>
-        <td>{{ getProviderName(sub.provider_id) }}</td>
-        <td>{{ sub.amount }} DT</td>
-        <td>{{ sub.billing_cycle === 'monthly' ? 'Mensuel' : 'Annuel' }}</td>
-        <td>{{ sub.created_at | date: 'dd/MM/yyyy' }}</td>
-        <td>{{ sub.next_payment_date | date: 'dd/MM/yyyy' }}</td>
-        <td>
-          <button
-            class="btn btn-sm btn-warning me-2"
-            (click)="editSubscription(sub)"
-          >
-            Modifier
-          </button>
-          <button
-            class="btn btn-sm btn-danger"
-            (click)="deleteSubscription(sub.id)"
-          >
-            Supprimer
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- NOTIFICATIONS MODERNES -->
+  <div class="notifications-section">
+    <h3 class="notifications-title">
+      <i class="fas fa-bell"></i>
+      Notifications
+      <span *ngIf="notifications.length > 0" class="notification-count">{{ notifications.length }}</span>
+    </h3>
 
-  <hr />
+    <!-- État vide -->
+    <div *ngIf="notifications.length === 0" class="empty-notifications">
+      <div class="empty-icon">
+        <i class="fas fa-bell-slash"></i>
+      </div>
+      <h4>Aucune notification</h4>
+      <p>Vous êtes à jour ! Aucune notification pour le moment.</p>
+    </div>
 
-  <!-- NOTIFICATIONS -->
-  <h3 class="text-center mb-3">Notifications</h3>
-  <div *ngIf="notifications.length === 0" class="text-muted text-center mb-3">
-    Aucune notification pour le moment.
-  </div>
-  <ul
-    class="list-group mb-3"
-    *ngIf="notifications.length > 0"
-    style="max-width: 600px; margin: auto;"
-  >
-    <li *ngFor="let notif of notifications" class="list-group-item">
-      <strong>{{ notif.title }}</strong><br />
-      <small>{{ notif.body }}</small><br />
-      <small class="text-muted fst-italic">
-        {{ notif.date | date: 'dd/MM/yyyy HH:mm:ss' }}
-      </small>
-    </li>
-  </ul>
+    <!-- Liste des notifications -->
+    <div *ngIf="notifications.length > 0" class="notifications-container">
+      <div *ngFor="let notif of notifications; let i = index"
+           class="notification-card"
+           [ngClass]="getNotificationClass(notif)">
 
-  <div class="text-center mb-4" *ngIf="notifications.length > 0">
-    <button
-      class="btn btn-sm btn-outline-danger"
-      (click)="clearNotifications()"
-    >
-      Effacer les notifications
-    </button>
+        <div class="notification-icon">
+          <i [class]="getNotificationIcon(notif)"></i>
+        </div>
+
+        <div class="notification-content">
+          <div class="notification-header">
+            <h5 class="notification-title">{{ notif.title }}</h5>
+            <span class="notification-time">{{ notif.date | date: 'dd/MM HH:mm' }}</span>
+          </div>
+          <p class="notification-body">{{ notif.body }}</p>
+          <div class="notification-footer">
+            <span class="notification-date">{{ notif.date | date: 'dd/MM/yyyy à HH:mm:ss' }}</span>
+          </div>
+        </div>
+
+        <button class="notification-close" (click)="removeNotification(i)" title="Supprimer cette notification">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Bouton pour effacer toutes les notifications -->
+      <div class="notifications-actions">
+        <button class="btn btn-clear-all" (click)="clearNotifications()">
+          <i class="fas fa-trash-alt"></i>
+          <span>Effacer toutes les notifications</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>

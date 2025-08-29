@@ -30,30 +30,28 @@ Route::middleware('auth:api')->group(function () {
     // Routes utilisateurs normaux
     Route::middleware('user')->group(function () {
         Route::apiResource('subscriptions', SubscriptionController::class);
-        Route::get('/providers', [ProviderController::class, 'index']); // Liste simple pour user
+
+        // 🔹 Nouvelle route pour renouveler un abonnement
+        Route::post('/subscriptions/{id}/renew', [SubscriptionController::class, 'renew']);
+
+        Route::get('/providers', [ProviderController::class, 'index']);
     });
 
     // Routes admins
     Route::middleware('admin')->prefix('admin')->group(function () {
-
-        // Test accès admin
         Route::get('/only', function () {
             return response()->json(['message' => 'Accès réservé aux admins']);
         });
 
-        // CRUD utilisateurs
         Route::get('/users', [AdminUserController::class, 'index']); 
         Route::post('/users', [AdminUserController::class, 'store']); 
         Route::put('/users/{id}', [AdminUserController::class, 'update']); 
         Route::delete('/users/{id}', [AdminUserController::class, 'destroy']); 
 
-        // CRUD subscriptions (admin)
         Route::get('/subscriptions', [AdminSubscriptionController::class, 'index']);
 
-        // CRUD providers complet pour admin
         Route::apiResource('providers', ProviderController::class);
 
-        // Gestion des réclamations réservée aux admins
         Route::get('/reclamations', [ReclamationController::class, 'index']);
         Route::get('/reclamations/{id}', [ReclamationController::class, 'show']);
         Route::put('/reclamations/{id}', [ReclamationController::class, 'update']);

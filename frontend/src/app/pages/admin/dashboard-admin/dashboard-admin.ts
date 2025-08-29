@@ -23,6 +23,12 @@ export type PieChartOptions = {
   labels: string[];
   title: ApexTitleSubtitle;
   responsive: ApexResponsive[];
+  colors: string[];
+  legend: any;
+  plotOptions: any;
+  dataLabels: any;
+  stroke: any;
+  tooltip: any;
 };
 
 export type BarChartOptions = {
@@ -124,11 +130,178 @@ export class DashboardAdmin implements OnInit {
 
     this.pieChartOptions = {
       series: Object.values(providerCounts),
-      chart: { type: 'pie', height: 350 },
+      chart: {
+        type: 'pie',
+        height: 400,
+        animations: {
+          enabled: true,
+          speed: 800,
+          animateGradually: {
+            enabled: true,
+            delay: 150
+          },
+          dynamicAnimation: {
+            enabled: true,
+            speed: 350
+          }
+        },
+        dropShadow: {
+          enabled: true,
+          color: '#000',
+          top: 18,
+          left: 7,
+          blur: 10,
+          opacity: 0.2
+        }
+      },
       labels: Object.keys(providerCounts),
-      title: { text: 'Répartition des abonnements par provider' },
+      title: {
+        text: 'Répartition des Abonnements par Fournisseur',
+        style: {
+          fontSize: '16px',
+          fontWeight: '700',
+          color: '#2c3e50'
+        }
+      },
+      colors: [
+        '#667eea', // Bleu-violet moderne
+        '#764ba2', // Violet profond
+        '#f093fb', // Rose-violet
+        '#f5576c', // Rouge-rose
+        '#4facfe', // Bleu clair
+        '#00f2fe', // Cyan
+        '#43e97b', // Vert moderne
+        '#38f9d7', // Turquoise
+        '#ffecd2', // Pêche
+        '#fcb69f', // Orange doux
+        '#a8edea', // Menthe
+        '#fed6e3'  // Rose poudré
+      ],
+      legend: {
+        position: 'right',
+        offsetY: 0,
+        height: 230,
+        fontSize: '14px',
+        fontWeight: 600,
+        labels: {
+          colors: '#2c3e50'
+        },
+        markers: {
+          width: 12,
+          height: 12,
+          strokeWidth: 0,
+          strokeColor: '#fff',
+          fillColors: undefined,
+          radius: 6,
+          customHTML: undefined,
+          onClick: undefined,
+          offsetX: 0,
+          offsetY: 0
+        }
+      },
+      plotOptions: {
+        pie: {
+          startAngle: -90,
+          endAngle: 270,
+          expandOnClick: true,
+          offsetX: 0,
+          offsetY: 0,
+          customScale: 1,
+          dataLabels: {
+            offset: 0,
+            minAngleToShowLabel: 10
+          },
+          donut: {
+            size: '0%',
+            background: 'transparent'
+          }
+        }
+      },
+      dataLabels: {
+        enabled: true,
+        formatter: function (val: number) {
+          return Math.round(val) + "%";
+        },
+        style: {
+          fontSize: '14px',
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: '600',
+          colors: ['#fff']
+        },
+        background: {
+          enabled: true,
+          foreColor: '#fff',
+          padding: 4,
+          borderRadius: 2,
+          borderWidth: 1,
+          borderColor: '#fff',
+          opacity: 0.9,
+          dropShadow: {
+            enabled: true,
+            top: 1,
+            left: 1,
+            blur: 1,
+            color: '#000',
+            opacity: 0.45
+          }
+        },
+        dropShadow: {
+          enabled: false
+        }
+      },
+      stroke: {
+        show: true,
+        curve: 'smooth',
+        lineCap: 'butt',
+        colors: ['#fff'],
+        width: 3,
+        dashArray: 0
+      },
+      tooltip: {
+        enabled: true,
+        theme: 'dark',
+        style: {
+          fontSize: '14px',
+          fontFamily: 'Inter, sans-serif'
+        },
+        y: {
+          formatter: function (val: number) {
+            return val + " abonnements";
+          }
+        },
+        marker: {
+          show: true
+        }
+      },
       responsive: [
-        { breakpoint: 480, options: { chart: { width: 300 }, legend: { position: 'bottom' } } }
+        {
+          breakpoint: 1024,
+          options: {
+            chart: {
+              width: 380,
+              height: 350
+            },
+            legend: {
+              position: 'bottom',
+              offsetY: 0,
+              height: 'auto'
+            }
+          }
+        },
+        {
+          breakpoint: 768,
+          options: {
+            chart: {
+              width: 300,
+              height: 300
+            },
+            legend: {
+              position: 'bottom',
+              offsetY: 0,
+              height: 'auto'
+            }
+          }
+        }
       ]
     };
   }
@@ -245,6 +418,87 @@ deleteReclamation(id: number): void {
   });
 }
 
+
+  // ============================
+  // 🎭 Méthodes pour Modal Réclamations Ultra-Moderne
+  // ============================
+
+  /**
+   * Obtient les réclamations par statut
+   */
+  getReclamationsByStatus(status: string): ReclamationData[] {
+    return this.reclamations.filter(rec => rec.status === status);
+  }
+
+  /**
+   * Détermine la classe CSS pour la carte de réclamation
+   */
+  getReclamationCardClass(status: string): string {
+    return status || 'pending';
+  }
+
+  /**
+   * Détermine la classe CSS pour le badge de statut
+   */
+  getStatusBadgeClass(status: string): string {
+    return status || 'pending';
+  }
+
+  /**
+   * Détermine l'icône pour le statut
+   */
+  getStatusIcon(status: string): string {
+    switch (status) {
+      case 'resolved':
+        return 'fas fa-check-circle';
+      case 'rejected':
+        return 'fas fa-times-circle';
+      case 'pending':
+      default:
+        return 'fas fa-clock';
+    }
+  }
+
+  /**
+   * Détermine le texte pour le statut
+   */
+  getStatusText(status: string): string {
+    switch (status) {
+      case 'resolved':
+        return 'Résolu';
+      case 'rejected':
+        return 'Rejeté';
+      case 'pending':
+      default:
+        return 'En Attente';
+    }
+  }
+
+  /**
+   * Met à jour le statut d'une réclamation
+   */
+  async updateReclamationStatus(id: number, newStatus: 'pending' | 'resolved' | 'rejected'): Promise<void> {
+    try {
+      // Trouver la réclamation
+      const reclamation = this.reclamations.find(rec => rec.id === id);
+      if (!reclamation) {
+        this.showAlert('Réclamation introuvable', 'error');
+        return;
+      }
+
+      // Mettre à jour le statut localement
+      reclamation.status = newStatus;
+
+      // Ici vous pouvez ajouter l'appel API pour mettre à jour en base
+      // await this.reclamationService.updateStatus(id, newStatus);
+
+      const statusText = this.getStatusText(newStatus);
+      this.showAlert(`Réclamation marquée comme "${statusText}"`, 'success');
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut:', error);
+      this.showAlert('Erreur lors de la mise à jour du statut', 'error');
+    }
+  }
 
   // Alert
   showAlert(message: string, type: 'success' | 'error') {
